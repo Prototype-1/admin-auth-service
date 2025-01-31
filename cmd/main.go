@@ -1,9 +1,14 @@
 package main
 
 import (
-"fmt"
+	"github.com/Prototype-1/admin-auth-service/internal/utils/logger" 
+	"fmt"
 )
 
+func main() {
+	// Initialize the logger
+	logger.InitLogger()
+	logger.Log.Info("Admin Auth Service started successfully")
 
-
-git add
+	fmt.Println("Server is running...")
+}
