@@ -1,0 +1,17 @@
+# Binaries
+*.exe
+*.out
+*.test
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# Vendor directory (if using Go modules)
+vendor/
+
+# Compiled gRPC files
+proto/*.pb.go
+proto/*.grpc.go
