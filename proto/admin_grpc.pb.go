@@ -19,6 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	AdminService_AdminSignup_FullMethodName = "/admin.AdminService/AdminSignup"
+	AdminService_AdminLogin_FullMethodName  = "/admin.AdminService/AdminLogin"
 	AdminService_GetAllUsers_FullMethodName = "/admin.AdminService/GetAllUsers"
 	AdminService_BlockUser_FullMethodName   = "/admin.AdminService/BlockUser"
 	AdminService_UnblockUser_FullMethodName = "/admin.AdminService/UnblockUser"
@@ -29,6 +31,10 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AdminServiceClient interface {
+	// Auth endpoints
+	AdminSignup(ctx context.Context, in *AdminSignupRequest, opts ...grpc.CallOption) (*AuthResponse, error)
+	AdminLogin(ctx context.Context, in *AdminLoginRequest, opts ...grpc.CallOption) (*AuthResponse, error)
+	// Existing endpoints
 	GetAllUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserList, error)
 	BlockUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*StatusResponse, error)
 	UnblockUser(ctx context.Context, in *UserRequest, opts ...grpc.CallOption) (*StatusResponse, error)
@@ -41,6 +47,26 @@ type adminServiceClient struct {
 
 func NewAdminServiceClient(cc grpc.ClientConnInterface) AdminServiceClient {
 	return &adminServiceClient{cc}
+}
+
+func (c *adminServiceClient) AdminSignup(ctx context.Context, in *AdminSignupRequest, opts ...grpc.CallOption) (*AuthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthResponse)
+	err := c.cc.Invoke(ctx, AdminService_AdminSignup_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *adminServiceClient) AdminLogin(ctx context.Context, in *AdminLoginRequest, opts ...grpc.CallOption) (*AuthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthResponse)
+	err := c.cc.Invoke(ctx, AdminService_AdminLogin_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *adminServiceClient) GetAllUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*UserList, error) {
@@ -87,6 +113,10 @@ func (c *adminServiceClient) SuspendUser(ctx context.Context, in *UserRequest, o
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility.
 type AdminServiceServer interface {
+	// Auth endpoints
+	AdminSignup(context.Context, *AdminSignupRequest) (*AuthResponse, error)
+	AdminLogin(context.Context, *AdminLoginRequest) (*AuthResponse, error)
+	// Existing endpoints
 	GetAllUsers(context.Context, *Empty) (*UserList, error)
 	BlockUser(context.Context, *UserRequest) (*StatusResponse, error)
 	UnblockUser(context.Context, *UserRequest) (*StatusResponse, error)
@@ -101,6 +131,12 @@ type AdminServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAdminServiceServer struct{}
 
+func (UnimplementedAdminServiceServer) AdminSignup(context.Context, *AdminSignupRequest) (*AuthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminSignup not implemented")
+}
+func (UnimplementedAdminServiceServer) AdminLogin(context.Context, *AdminLoginRequest) (*AuthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AdminLogin not implemented")
+}
 func (UnimplementedAdminServiceServer) GetAllUsers(context.Context, *Empty) (*UserList, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllUsers not implemented")
 }
@@ -132,6 +168,42 @@ func RegisterAdminServiceServer(s grpc.ServiceRegistrar, srv AdminServiceServer)
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&AdminService_ServiceDesc, srv)
+}
+
+func _AdminService_AdminSignup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminSignupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).AdminSignup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_AdminSignup_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).AdminSignup(ctx, req.(*AdminSignupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AdminService_AdminLogin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminLoginRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AdminServiceServer).AdminLogin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AdminService_AdminLogin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AdminServiceServer).AdminLogin(ctx, req.(*AdminLoginRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _AdminService_GetAllUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -213,6 +285,14 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "admin.AdminService",
 	HandlerType: (*AdminServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "AdminSignup",
+			Handler:    _AdminService_AdminSignup_Handler,
+		},
+		{
+			MethodName: "AdminLogin",
+			Handler:    _AdminService_AdminLogin_Handler,
+		},
 		{
 			MethodName: "GetAllUsers",
 			Handler:    _AdminService_GetAllUsers_Handler,

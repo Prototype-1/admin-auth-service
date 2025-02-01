@@ -1,69 +1,69 @@
 package usecase
 
 import (
+	"errors"
+
 	"github.com/Prototype-1/admin-auth-service/internal/models"
 	"github.com/Prototype-1/admin-auth-service/internal/repository"
-	"errors"
-	"time"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminUsecase interface {
-	GetAllUsers() ([]models.User, error)
+	Signup(email, password string) error
+	Login(email, password string) (*models.Admin, error)
 	BlockUser(userID uint) error
 	UnblockUser(userID uint) error
 	SuspendUser(userID uint) error
+	GetAllUsers() ([]*models.User, error)
 }
 
 type adminUsecaseImpl struct {
-	adminRepo repository.AdminRepository
+	repo repository.AdminRepository
 }
 
-func NewAdminUsecase(adminRepo repository.AdminRepository) AdminUsecase {
-	return &adminUsecaseImpl{adminRepo: adminRepo}
+func NewAdminUsecase(repo repository.AdminRepository) AdminUsecase {
+	return &adminUsecaseImpl{repo: repo}
 }
 
-func (u *adminUsecaseImpl) GetAllUsers() ([]models.User, error) {
-	return u.adminRepo.GetAllUsers()
+func (u *adminUsecaseImpl) Signup(email, password string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	admin := &models.Admin{
+		Email:    email,
+		Password: string(hashedPassword),
+	}
+
+	return u.repo.CreateAdmin(admin)
+}
+
+func (u *adminUsecaseImpl) Login(email, password string) (*models.Admin, error) {
+	admin, err := u.repo.GetAdminByEmail(email)
+	if err != nil || admin == nil {
+		return nil, errors.New("invalid credentials")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(password)); err != nil {
+		return nil, errors.New("invalid credentials")
+	}
+
+	return admin, nil
 }
 
 func (u *adminUsecaseImpl) BlockUser(userID uint) error {
-	user, err := u.adminRepo.GetUserByID(userID)
-	if err != nil {
-		return errors.New("user not found")
-	}
-	if user.BlockedStatus {
-		return errors.New("user is already blocked")
-	}
-
-	user.BlockedStatus = true
-	return u.adminRepo.UpdateUser(user)
+	return u.repo.BlockUser(userID)
 }
 
 func (u *adminUsecaseImpl) UnblockUser(userID uint) error {
-	user, err := u.adminRepo.GetUserByID(userID)
-	if err != nil {
-		return errors.New("user not found")
-	}
-	if !user.BlockedStatus {
-		return errors.New("user is not blocked")
-	}
-
-	user.BlockedStatus = false
-	return u.adminRepo.UpdateUser(user)
+	return u.repo.UnblockUser(userID)
 }
 
 func (u *adminUsecaseImpl) SuspendUser(userID uint) error {
-	user, err := u.adminRepo.GetUserByID(userID)
-	if err != nil {
-		return errors.New("user not found")
-	}
-	if user.InactiveStatus {
-		return errors.New("user is already suspended")
-	}
+	return u.repo.SuspendUser(userID)
+}
 
-	now := time.Now()
-	user.InactiveStatus = true
-	user.SuspendedAt = &now
-
-	return u.adminRepo.UpdateUser(user)
+func (u *adminUsecaseImpl) GetAllUsers() ([]*models.User, error) {
+	return u.repo.GetAllUsers()
 }
