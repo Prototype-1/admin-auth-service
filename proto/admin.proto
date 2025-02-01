@@ -1,8 +1,6 @@
 syntax = "proto3";
-
 package admin;
-
-option go_package = "github.com/Prototype-1/admin-auth-service/pb;pb";
+option go_package = ".;admin";
 
 service AdminService {
   rpc GetAllUsers (Empty) returns (UserList);
