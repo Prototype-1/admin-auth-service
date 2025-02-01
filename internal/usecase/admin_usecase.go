@@ -5,7 +5,7 @@ import (
 
 	"github.com/Prototype-1/admin-auth-service/internal/models"
 	"github.com/Prototype-1/admin-auth-service/internal/repository"
-	utils "github.com/Prototype-1/admin-auth-service/internal/utils/jwt"
+	utils "github.com/Prototype-1/admin-auth-service/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
