@@ -13,6 +13,7 @@ type AdminRepository interface {
 	UnblockUser(userID uint) error
 	SuspendUser(userID uint) error
 	GetUserByID(userID uint) (*models.User, error)
+	UpdateUser(user *models.User) error  
 }
 
 type adminRepositoryImpl struct {
@@ -73,10 +74,14 @@ func (r *adminRepositoryImpl) GetUserByID(userID uint) (*models.User, error) {
 	var user models.User
 	if err := r.db.First(&user, userID).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, errors.New("user not found")
 		}
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *adminRepositoryImpl) UpdateUser(user *models.User) error {
+	return r.db.Save(user).Error
 }
 

@@ -22,12 +22,10 @@ func NewAdminUsecase(adminRepo repository.AdminRepository) AdminUsecase {
 	return &adminUsecaseImpl{adminRepo: adminRepo}
 }
 
-// GetAllUsers fetches all normal users
 func (u *adminUsecaseImpl) GetAllUsers() ([]models.User, error) {
 	return u.adminRepo.GetAllUsers()
 }
 
-// BlockUser blocks a user by setting `BlockedStatus` to true
 func (u *adminUsecaseImpl) BlockUser(userID uint) error {
 	user, err := u.adminRepo.GetUserByID(userID)
 	if err != nil {

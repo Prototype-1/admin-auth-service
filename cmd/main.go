@@ -6,7 +6,6 @@ import (
 )
 
 func main() {
-	// Initialize the logger
 	logger.InitLogger()
 	logger.Log.Info("Admin Auth Service started successfully")
 
