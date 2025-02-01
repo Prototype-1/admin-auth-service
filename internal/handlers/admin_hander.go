@@ -25,12 +25,12 @@ func (s *AdminServer) AdminSignup(ctx context.Context, req *pb.AdminSignupReques
 }
 
 func (s *AdminServer) AdminLogin(ctx context.Context, req *pb.AdminLoginRequest) (*pb.AuthResponse, error) {
-	_, err := s.usecase.Login(req.Email, req.Password)
+	token, err := s.usecase.Login(req.Email, req.Password)
 	if err != nil {
 		return nil, err
 	}
 
-	return &pb.AuthResponse{AccessToken: "jwt-token-placeholder", Message: "Login successful"}, nil
+	return &pb.AuthResponse{AccessToken: token, Message: "Login successful"}, nil
 }
 
 func (s *AdminServer) BlockUser(ctx context.Context, req *pb.UserRequest) (*pb.StatusResponse, error) {

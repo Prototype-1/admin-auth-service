@@ -5,12 +5,13 @@ import (
 
 	"github.com/Prototype-1/admin-auth-service/internal/models"
 	"github.com/Prototype-1/admin-auth-service/internal/repository"
+	utils "github.com/Prototype-1/admin-auth-service/internal/utils/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AdminUsecase interface {
 	Signup(email, password string) error
-	Login(email, password string) (*models.Admin, error)
+	Login(email, password string) (string, error)
 	BlockUser(userID uint) error
 	UnblockUser(userID uint) error
 	SuspendUser(userID uint) error
@@ -39,17 +40,22 @@ func (u *adminUsecaseImpl) Signup(email, password string) error {
 	return u.repo.CreateAdmin(admin)
 }
 
-func (u *adminUsecaseImpl) Login(email, password string) (*models.Admin, error) {
+func (u *adminUsecaseImpl) Login(email, password string) (string, error) {
 	admin, err := u.repo.GetAdminByEmail(email)
 	if err != nil || admin == nil {
-		return nil, errors.New("invalid credentials")
+		return "", errors.New("invalid credentials")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(password)); err != nil {
-		return nil, errors.New("invalid credentials")
+		return "", errors.New("invalid credentials")
 	}
 
-	return admin, nil
+	token, err := utils.GenerateJWT(admin.ID)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 func (u *adminUsecaseImpl) BlockUser(userID uint) error {
