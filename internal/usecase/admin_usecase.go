@@ -2,11 +2,14 @@ package usecase
 
 import (
 	"errors"
+	"fmt"
+	"os"
 
 	"github.com/Prototype-1/admin-auth-service/internal/models"
 	"github.com/Prototype-1/admin-auth-service/internal/repository"
 	utils "github.com/Prototype-1/admin-auth-service/internal/utils"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/joho/godotenv"
 )
 
 type AdminUsecase interface {
@@ -20,6 +23,20 @@ type AdminUsecase interface {
 
 type adminUsecaseImpl struct {
 	repo repository.AdminRepository
+}
+
+// ✅ Load .env when package initializes
+func init() {
+	err := godotenv.Load("config/.env") 
+	if err != nil {
+		fmt.Println("Error loading .env file:", err)
+	}
+	secretKey := os.Getenv("JWT_SECRET_KEY")
+	if secretKey == "" {
+		fmt.Println("⚠️ Warning: JWT_SECRET_KEY is not set in .env file")
+	} else {
+		fmt.Println("✅ JWT_SECRET_KEY loaded successfully")
+	}
 }
 
 func NewAdminUsecase(repo repository.AdminRepository) AdminUsecase {
@@ -41,21 +58,28 @@ func (u *adminUsecaseImpl) Signup(email, password string) error {
 }
 
 func (u *adminUsecaseImpl) Login(email, password string) (string, error) {
-	admin, err := u.repo.GetAdminByEmail(email)
-	if err != nil || admin == nil {
-		return "", errors.New("invalid credentials")
-	}
+    admin, err := u.repo.GetAdminByEmail(email)
+    if err != nil || admin == nil {
+        return "", errors.New("invalid credentials")
+    }
 
-	if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(password)); err != nil {
-		return "", errors.New("invalid credentials")
-	}
+    if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(password)); err != nil {
+        return "", errors.New("invalid credentials")
+    }
 
-	token, err := utils.GenerateJWT(admin.ID)
-	if err != nil {
-		return "", err
-	}
+    secretKey := os.Getenv("JWT_SECRET_KEY") 
+    fmt.Println("USECASE: JWT_SECRET_KEY =", secretKey) 
 
-	return token, nil
+    if secretKey == "" {
+        return "", errors.New("server error: missing JWT_SECRET_KEY")
+    }
+
+    token, err := utils.GenerateJWT(int(admin.ID), secretKey)
+    if err != nil {
+        return "", err
+    }
+
+    return token, nil
 }
 
 func (u *adminUsecaseImpl) BlockUser(userID uint) error {
