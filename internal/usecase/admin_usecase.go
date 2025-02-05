@@ -25,7 +25,6 @@ type adminUsecaseImpl struct {
 	repo repository.AdminRepository
 }
 
-// ✅ Load .env when package initializes
 func init() {
 	err := godotenv.Load("config/.env") 
 	if err != nil {
@@ -33,9 +32,9 @@ func init() {
 	}
 	secretKey := os.Getenv("JWT_SECRET_KEY")
 	if secretKey == "" {
-		fmt.Println("⚠️ Warning: JWT_SECRET_KEY is not set in .env file")
+		fmt.Println("Warning: JWT_SECRET_KEY is not set in .env file")
 	} else {
-		fmt.Println("✅ JWT_SECRET_KEY loaded successfully")
+		fmt.Println("JWT_SECRET_KEY loaded successfully")
 	}
 }
 

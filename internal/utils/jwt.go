@@ -2,7 +2,7 @@ package utils
 
 import (
     "errors"
-    "github.com/golang-jwt/jwt/v4"  // Change to this package
+    "github.com/golang-jwt/jwt/v4" 
     "time"
     "os"
     "log"

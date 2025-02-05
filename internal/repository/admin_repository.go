@@ -2,7 +2,7 @@ package repository
 
 import (
 	"errors"
-
+	"log"
 	"github.com/Prototype-1/admin-auth-service/internal/models"
 	"gorm.io/gorm"
 )
@@ -25,13 +25,19 @@ func NewAdminRepository(db *gorm.DB) AdminRepository {
 }
 
 func (r *adminRepositoryImpl) CreateAdmin(admin *models.Admin) error {
-	return r.db.Create(admin).Error
+    var existingAdmin models.Admin
+    if err := r.db.Where("email = ?", admin.Email).First(&existingAdmin).Error; err == nil {
+        return errors.New("admin with this email already exists")
+    }
+    return r.db.Create(admin).Error
 }
 
 func (r *adminRepositoryImpl) GetAdminByEmail(email string) (*models.Admin, error) {
+	log.Println("Searching for admin with email:", email) 
 	var admin models.Admin
 	err := r.db.Where("email = ?", email).First(&admin).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Println("Admin not found in DB")
 		return nil, nil
 	}
 	return &admin, err
