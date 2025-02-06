@@ -11,7 +11,8 @@ import (
 	"github.com/Prototype-1/admin-auth-service/internal/repository"
 	"github.com/Prototype-1/admin-auth-service/internal/usecase"
 	"github.com/Prototype-1/admin-auth-service/internal/utils"
-	pb "github.com/Prototype-1/admin-auth-service/proto"
+	pb "github.com/Prototype-1/admin-auth-service/proto/admin"
+	userpb "github.com/Prototype-1/admin-auth-service/proto/user"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 )
@@ -30,10 +31,20 @@ func init() {
 
 func main() {
 	utils.InitDB()
-	repo := repository.NewAdminRepository(utils.DB)
-	usecase := usecase.NewAdminUsecase(repo)
 
-	server := handlers.NewAdminServer(usecase)
+conn, err := grpc.Dial(":50052", grpc.WithInsecure()) 
+if err != nil {
+    log.Fatalf("did not connect: %v", err)
+}
+defer conn.Close()
+
+userClient := userpb.NewUserServiceClient(conn)
+
+
+	repo := repository.NewAdminRepository(utils.DB)
+	usecase := usecase.NewAdminUsecase(repo, userClient)
+
+	server := handlers.NewAdminServer(usecase, userClient)
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
