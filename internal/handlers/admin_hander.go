@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/codes"
-	userpb "github.com/Prototype-1/user-auth-service/proto"
+	userpb "github.com/Prototype-1/user_auth_service/proto"
 )
 
 type AdminServer struct {
