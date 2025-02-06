@@ -3,18 +3,10 @@ package admin;
 option go_package = ".;admin";
 
 service AdminService {
-  // Auth endpoints
   rpc AdminSignup (AdminSignupRequest) returns (AuthResponse);
   rpc AdminLogin (AdminLoginRequest) returns (AuthResponse);
-  
-  // Existing endpoints
-  rpc GetAllUsers (Empty) returns (UserList);
-  rpc BlockUser (UserRequest) returns (StatusResponse);
-  rpc UnblockUser (UserRequest) returns (StatusResponse);
-  rpc SuspendUser (UserRequest) returns (StatusResponse);
+  rpc AdminGetDetails (AdminRequest) returns (AdminResponse);
 }
-
-message Empty {}
 
 message AdminSignupRequest {
   string email = 1;
@@ -32,22 +24,12 @@ message AuthResponse {
   string message = 3;
 }
 
-message UserRequest {
-  uint32 user_id = 1;
+message AdminRequest {
+  uint32 admin_id = 1;
 }
 
-message StatusResponse {
-  string message = 1;
-}
-
-message User {
+message AdminResponse {
   uint32 id = 1;
-  string name = 2;
-  string email = 3;
-  bool blocked_status = 4;
-  bool inactive_status = 5;
-}
-
-message UserList {
-  repeated User users = 1;
+  string email = 2;
+  string message = 3;
 }

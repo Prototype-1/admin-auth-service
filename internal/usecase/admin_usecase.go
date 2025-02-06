@@ -10,6 +10,8 @@ import (
 	utils "github.com/Prototype-1/admin-auth-service/internal/utils"
 	"golang.org/x/crypto/bcrypt"
 	"github.com/joho/godotenv"
+	userpb "github.com/Prototype-1/user-auth-service/proto"
+	"context"
 )
 
 type AdminUsecase interface {
@@ -23,6 +25,7 @@ type AdminUsecase interface {
 
 type adminUsecaseImpl struct {
 	repo repository.AdminRepository
+	userService userpb.UserServiceClient
 }
 
 func init() {
@@ -81,18 +84,36 @@ func (u *adminUsecaseImpl) Login(email, password string) (string, error) {
     return token, nil
 }
 
+
 func (u *adminUsecaseImpl) BlockUser(userID uint) error {
-	return u.repo.BlockUser(userID)
+	_, err := u.userService.BlockUser(context.Background(), &userpb.BlockUserRequest{UserId: userID})
+	return err
 }
 
 func (u *adminUsecaseImpl) UnblockUser(userID uint) error {
-	return u.repo.UnblockUser(userID)
+	_, err := u.userService.UnblockUser(context.Background(), &userpb.UnblockUserRequest{UserId: userID})
+	return err
 }
 
 func (u *adminUsecaseImpl) SuspendUser(userID uint) error {
-	return u.repo.SuspendUser(userID)
+	_, err := u.userService.SuspendUser(context.Background(), &userpb.SuspendUserRequest{UserId: userID})
+	return err
 }
 
 func (u *adminUsecaseImpl) GetAllUsers() ([]*models.User, error) {
-	return u.repo.GetAllUsers()
+	res, err := u.userService.GetAllUsers(context.Background(), &userpb.GetAllUsersRequest{})
+	if err != nil {
+		return nil, err
+	}
+
+	var users []*models.User
+	for _, u := range res.Users {
+		users = append(users, &models.User{
+			ID:            u.Id,
+			Email:         u.Email,
+			BlockedStatus: u.BlockedStatus,
+			InactiveStatus: u.InactiveStatus,
+		})
+	}
+	return users, nil
 }

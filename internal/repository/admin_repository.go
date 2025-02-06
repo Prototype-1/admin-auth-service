@@ -10,10 +10,6 @@ import (
 type AdminRepository interface {
 	CreateAdmin(admin *models.Admin) error
 	GetAdminByEmail(email string) (*models.Admin, error)
-	BlockUser(userID uint) error
-	UnblockUser(userID uint) error
-	SuspendUser(userID uint) error
-	GetAllUsers() ([]*models.User, error)
 }
 
 type adminRepositoryImpl struct {
@@ -43,23 +39,4 @@ func (r *adminRepositoryImpl) GetAdminByEmail(email string) (*models.Admin, erro
 	return &admin, err
 }
 
-func (r *adminRepositoryImpl) BlockUser(userID uint) error {
-	return r.db.Model(&models.User{}).Where("id = ?", userID).Update("blocked_status", true).Error
-}
 
-func (r *adminRepositoryImpl) UnblockUser(userID uint) error {
-	return r.db.Model(&models.User{}).Where("id = ?", userID).Update("blocked_status", false).Error
-}
-
-func (r *adminRepositoryImpl) SuspendUser(userID uint) error {
-	return r.db.Model(&models.User{}).Where("id = ?", userID).Update("inactive_status", true).Error
-}
-
-func (r *adminRepositoryImpl) GetAllUsers() ([]*models.User, error) {
-	var users []*models.User
-	err := r.db.Find(&users).Error
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
-}

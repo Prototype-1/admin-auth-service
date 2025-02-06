@@ -14,12 +14,3 @@ type Admin struct {
 	UpdatedAt time.Time      `gorm:"autoUpdateTime"`
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
-
-type User struct {
-	ID             uint   `gorm:"primaryKey"`
-	FirstName      string `gorm:"not null"`
-	LastName       string `gorm:"not null"`
-	Email          string `gorm:"unique;not null"`
-	BlockedStatus  bool
-	InactiveStatus bool
-}
