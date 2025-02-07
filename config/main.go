@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 
@@ -20,16 +19,18 @@ import (
 func init() {
 	err := godotenv.Load("config/.env")
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		utils.Log.Sugar().Fatalf("Error loading .env file: %v", err)
 	}
 	jwtSecretKey := os.Getenv("JWT_SECRET_KEY")
 	if len(jwtSecretKey) == 0 {
 		log.Fatal("JWT_SECRET_KEY environment variable not set")
 	}
-	fmt.Println(jwtSecretKey)
 }
 
 func main() {
+	utils.InitLogger() 
+	utils.Log.Info("Logger initialized successfully")
+
 	utils.InitDB()
 
 conn, err := grpc.Dial(":50052", grpc.WithInsecure()) 

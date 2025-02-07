@@ -5,10 +5,11 @@ import (
 	"log"
 	"os"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"github.com/Prototype-1/admin-auth-service/internal/models"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
@@ -16,7 +17,7 @@ var DB *gorm.DB
 func InitDB() {
 	err := godotenv.Load("./config/.env")
 	if err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		Log.Fatal("Error loading .env file", zap.Error(err))
 	}
 
 	dbUser := os.Getenv("DB_USER")
@@ -34,7 +35,7 @@ func InitDB() {
 
 	err = DB.AutoMigrate(&models.Admin{})
 	if err != nil {
-		log.Fatal("Error migrating database: ", err)
+		Log.Fatal("Error migrating database: ", zap.Error(err))
 	}
 
 	log.Println("Successfully connected to the database and migrated the schema")
