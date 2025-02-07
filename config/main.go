@@ -12,6 +12,7 @@ import (
 	"github.com/Prototype-1/admin-auth-service/internal/utils"
 	pb "github.com/Prototype-1/admin-auth-service/proto/admin"
 	userpb "github.com/Prototype-1/admin-auth-service/proto/user"
+	routepb "github.com/Prototype-1/admin-auth-service/proto/routes"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 )
@@ -39,13 +40,19 @@ if err != nil {
 }
 defer conn.Close()
 
-userClient := userpb.NewUserServiceClient(conn)
+conn1, err := grpc.Dial(":50053", grpc.WithInsecure()) 
+if err != nil {
+    log.Fatalf("did not connect: %v", err)
+}
+defer conn.Close()
 
+userClient := userpb.NewUserServiceClient(conn)
+routeClient := routepb.NewRouteServiceClient(conn1)
 
 	repo := repository.NewAdminRepository(utils.DB)
-	usecase := usecase.NewAdminUsecase(repo, userClient)
+	usecase := usecase.NewAdminUsecase(repo, userClient, routeClient)
 
-	server := handlers.NewAdminServer(usecase, userClient)
+	server := handlers.NewAdminServer(usecase, userClient, routeClient)
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {

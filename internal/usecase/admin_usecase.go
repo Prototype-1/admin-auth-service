@@ -10,6 +10,7 @@ import (
     "github.com/Prototype-1/admin-auth-service/internal/repository"
     "github.com/Prototype-1/admin-auth-service/internal/utils"
     userpb "github.com/Prototype-1/admin-auth-service/proto/user"
+    routepb "github.com/Prototype-1/admin-auth-service/proto/routes"
     "github.com/joho/godotenv"
     "golang.org/x/crypto/bcrypt"
 )
@@ -17,15 +18,22 @@ import (
 type AdminUsecase interface {
     Signup(email, password string) error
     Login(email, password string) (string, error)
+
     BlockUser(userID uint) error
     UnblockUser(userID uint) error
     SuspendUser(userID uint) error
     GetAllUsers() ([]*models.User, error)
+
+    AddRoute(routeName string, startStopID, endStopID, categoryID int) error
+    UpdateRoute(routeID int, routeName string, startStopID, endStopID, categoryID int) error
+    DeleteRoute(routeID int) error
+    GetAllRoutes() ([]*models.Route, error)
 }
 
 type adminUsecaseImpl struct {
     repo        repository.AdminRepository
     userService userpb.UserServiceClient
+    routeService routepb.RouteServiceClient
 }
 
 func init() {
@@ -41,10 +49,11 @@ func init() {
     }
 }
 
-func NewAdminUsecase(repo repository.AdminRepository, userClient userpb.UserServiceClient) AdminUsecase {
+func NewAdminUsecase(repo repository.AdminRepository, userClient userpb.UserServiceClient, routeClient routepb.RouteServiceClient) AdminUsecase {
     return &adminUsecaseImpl{
         repo:        repo,
         userService: userClient,
+        routeService: routeClient,
     }
 }
 
@@ -117,4 +126,51 @@ func (u *adminUsecaseImpl) GetAllUsers() ([]*models.User, error) {
         })
     }
     return users, nil
+}
+
+func (u *adminUsecaseImpl) AddRoute(routeName string, startStopID, endStopID, categoryID int) error {
+    _, err := u.routeService.AddRoute(context.Background(), &routepb.AddRouteRequest{
+        RouteName:   routeName,
+        StartStopId: int32(startStopID),
+        EndStopId:   int32(endStopID),
+        CategoryId:  int32(categoryID),
+    })
+    return err
+}
+
+func (u *adminUsecaseImpl) UpdateRoute(routeID int, routeName string, startStopID, endStopID, categoryID int) error {
+    _, err := u.routeService.UpdateRoute(context.Background(), &routepb.UpdateRouteRequest{
+        RouteId:     int32(routeID),
+        RouteName:   routeName,
+        StartStopId: int32(startStopID),
+        EndStopId:   int32(endStopID),
+        CategoryId:  int32(categoryID),
+    })
+    return err
+}
+
+func (u *adminUsecaseImpl) DeleteRoute(routeID int) error {
+    _, err := u.routeService.DeleteRoute(context.Background(), &routepb.DeleteRouteRequest{
+        RouteId: int32(routeID),
+    })
+    return err
+}
+
+func (u *adminUsecaseImpl) GetAllRoutes() ([]*models.Route, error) {
+    res, err := u.routeService.GetAllRoutes(context.Background(), &routepb.GetAllRoutesRequest{})
+    if err != nil {
+        return nil, err
+    }
+
+    var routes []*models.Route
+    for _, r := range res.Routes {
+        routes = append(routes, &models.Route{
+            RouteID:    int(r.RouteId),
+            RouteName:  r.RouteName,
+            StartStopID: int(r.StartStopId),
+            EndStopID:   int(r.EndStopId),
+            CategoryID: int(r.CategoryId),
+        })
+    }
+    return routes, nil
 }
