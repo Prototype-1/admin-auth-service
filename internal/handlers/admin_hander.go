@@ -54,15 +54,15 @@ func (s *AdminServer) AdminLogin(ctx context.Context, req *pb.AdminLoginRequest)
 	}, nil
 }
 
-func (s *AdminServer) authenticateAdmin(ctx context.Context) (uint, error) {
+func (s *AdminServer) authenticateAdmin(ctx context.Context) (uint, string, error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
-		return 0, status.Errorf(codes.Unauthenticated, "Missing metadata")
+		return 0, "", status.Errorf(codes.Unauthenticated, "Missing metadata")
 	}
 
 	tokenList, exists := md["authorization"]
 	if !exists || len(tokenList) == 0 {
-		return 0, status.Errorf(codes.Unauthenticated, "Authorization token not provided")
+		return 0, "", status.Errorf(codes.Unauthenticated, "Authorization token not provided")
 	}
 
 	tokenString := tokenList[0]
@@ -70,16 +70,16 @@ func (s *AdminServer) authenticateAdmin(ctx context.Context) (uint, error) {
 		tokenString = tokenString[7:]
 	}
 
-	adminID, err := utils.ParseJWT(tokenString)
+	adminID, role, err := utils.ParseJWT(tokenString)
 	if err != nil {
-		return 0, status.Errorf(codes.Unauthenticated, "Invalid token: %v", err)
+		return 0, "", status.Errorf(codes.Unauthenticated, "Invalid token: %v", err)
 	}
 
-	return adminID, nil
+	return adminID, role, nil
 }
 
 func (s *AdminServer) BlockUser(ctx context.Context, req *userpb.UserRequest) (*userpb.StatusResponse, error) {
-	adminID, err := s.authenticateAdmin(ctx)
+	adminID, _, err := s.authenticateAdmin(ctx) 
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (s *AdminServer) BlockUser(ctx context.Context, req *userpb.UserRequest) (*
 }
 
 func (s *AdminServer) UnblockUser(ctx context.Context, req *userpb.UserRequest) (*userpb.StatusResponse, error) {
-	adminID, err := s.authenticateAdmin(ctx)
+	adminID, _, err := s.authenticateAdmin(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (s *AdminServer) UnblockUser(ctx context.Context, req *userpb.UserRequest) 
 }
 
 func (s *AdminServer) SuspendUser(ctx context.Context, req *userpb.UserRequest) (*userpb.StatusResponse, error) {
-	adminID, err := s.authenticateAdmin(ctx)
+	adminID, _, err := s.authenticateAdmin(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (s *AdminServer) SuspendUser(ctx context.Context, req *userpb.UserRequest) 
 }
 
 func (s *AdminServer) GetAllUsers(ctx context.Context, req *userpb.Empty) (*userpb.UserList, error) {
-	adminID, err := s.authenticateAdmin(ctx)
+	adminID, _, err := s.authenticateAdmin(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (s *AdminServer) GetAllUsers(ctx context.Context, req *userpb.Empty) (*user
 }
 
 func (s *AdminServer) AddRoute(ctx context.Context, req *routepb.AddRouteRequest) (*routepb.AddRouteResponse, error) {
-	adminID, err := s.authenticateAdmin(ctx)
+	adminID, _, err := s.authenticateAdmin(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func (s *AdminServer) AddRoute(ctx context.Context, req *routepb.AddRouteRequest
 }
 
 func (s *AdminServer) UpdateRoute(ctx context.Context, req *routepb.UpdateRouteRequest) (*routepb.UpdateRouteResponse, error) {
-	adminID, err := s.authenticateAdmin(ctx)
+	adminID, _, err := s.authenticateAdmin(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (s *AdminServer) UpdateRoute(ctx context.Context, req *routepb.UpdateRouteR
 }
 
 func (s *AdminServer) DeleteRoute(ctx context.Context, req *routepb.DeleteRouteRequest) (*routepb.DeleteRouteResponse, error) {
-	adminID, err := s.authenticateAdmin(ctx)
+	adminID, _, err := s.authenticateAdmin(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func (s *AdminServer) DeleteRoute(ctx context.Context, req *routepb.DeleteRouteR
 }
 
 func (s *AdminServer) GetAllRoutes(ctx context.Context, req *routepb.GetAllRoutesRequest) (*routepb.GetAllRoutesResponse, error) {
-	adminID, err := s.authenticateAdmin(ctx)
+	adminID, _, err := s.authenticateAdmin(ctx)
 	if err != nil {
 		return nil, err
 	}

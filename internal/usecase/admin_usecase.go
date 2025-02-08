@@ -74,18 +74,22 @@ func (u *adminUsecaseImpl) Login(email, password string) (string, error) {
     if err != nil || admin == nil {
         return "", errors.New("invalid credentials")
     }
+
     if err := bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(password)); err != nil {
         return "", errors.New("invalid credentials")
     }
+
     secretKey := os.Getenv("JWT_SECRET_KEY")
     fmt.Println("USECASE: JWT_SECRET_KEY =", secretKey)
     if secretKey == "" {
         return "", errors.New("server error: missing JWT_SECRET_KEY")
     }
-    token, err := utils.GenerateJWT(int(admin.ID), secretKey)
+
+    token, err := utils.GenerateJWT(int(admin.ID), admin.Role, secretKey)
     if err != nil {
         return "", err
     }
+
     return token, nil
 }
 
