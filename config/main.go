@@ -11,8 +11,8 @@ import (
 	"github.com/Prototype-1/admin-auth-service/internal/usecase"
 	"github.com/Prototype-1/admin-auth-service/internal/utils"
 	pb "github.com/Prototype-1/admin-auth-service/proto/admin"
-	userpb "github.com/Prototype-1/admin-auth-service/proto/user"
 	routepb "github.com/Prototype-1/admin-auth-service/proto/routes"
+	userpb "github.com/Prototype-1/admin-auth-service/proto/user"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 )
@@ -29,25 +29,25 @@ func init() {
 }
 
 func main() {
-	utils.InitLogger() 
+	utils.InitLogger()
 	utils.Log.Info("Logger initialized successfully")
 
 	utils.InitDB()
 
-conn, err := grpc.Dial(":50052", grpc.WithInsecure()) 
-if err != nil {
-    log.Fatalf("did not connect: %v", err)
-}
-defer conn.Close()
+	conn, err := grpc.Dial("localhost:50052", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
 
-conn1, err := grpc.Dial(":50053", grpc.WithInsecure()) 
-if err != nil {
-    log.Fatalf("did not connect: %v", err)
-}
-defer conn.Close()
+	conn1, err := grpc.Dial("localhost:50053", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
 
-userClient := userpb.NewUserServiceClient(conn)
-routeClient := routepb.NewRouteServiceClient(conn1)
+	userClient := userpb.NewUserServiceClient(conn)
+	routeClient := routepb.NewRouteServiceClient(conn1)
 
 	repo := repository.NewAdminRepository(utils.DB)
 	usecase := usecase.NewAdminUsecase(repo, userClient, routeClient)
